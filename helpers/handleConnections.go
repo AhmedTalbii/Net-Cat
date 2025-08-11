@@ -1,8 +1,8 @@
 package helpers
 
 import (
+	"bufio"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strings"
@@ -11,50 +11,60 @@ import (
 
 type usersInfo struct {
 	sync.Mutex
-	Number int
+	Number int // number of all the accepted connections
 	info   map[net.Conn]string
 }
 
 var users = usersInfo{
 	info: make(map[net.Conn]string),
 }
+var broadcast chan string
 
 func HandleConnections(conn net.Listener) {
 	for {
+		defer conn.Close()
 		client, err := conn.Accept()
 		if err != nil {
 			fmt.Println("accepting went wrong : ", err)
 			return
 		}
-		Ping_Win_Mess, err := os.ReadFile("/home/faaaziz/Desktop/net-cat/assets/pingwing.txt")
-		if err != nil {
-			log.Fatal(err)
-		}
-		client.Write(Ping_Win_Mess)
-		var tab []byte
-		client.Read(tab)
-		name := strings.TrimSpace(string(tab))
-		for !Valid_Name(name) {
-			fmt.Fprintln(client, "Not a valid name try again ...")
-			client.Read(tab)
-			name = strings.TrimSpace(string(tab))
-		}
-		users.Lock()
-		users.Number++
-		users.info[client] = name
-		users.Unlock()
+
+		go ClientInfo(client)
 
 	}
 }
 
-func Valid_Name(name string) bool {
-	if users.Number != 0 {
-		for _, Name := range users.info {
-			if !strings.EqualFold(Name, name) {
-				return false
-			}
-		}
+func ClientInfo(client net.Conn) {
+	Ping_Win_Mess, err := os.ReadFile("assets/pingwing.txt")
+	if err != nil {
+		fmt.Println("Ping_win_message: ", err)
+		return
+	}
+	client.Write(Ping_Win_Mess)
+	reader := bufio.NewReader(client)
+	name, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
+		client.Close()
+		return
 	}
 
-	return true
+	name = strings.TrimSpace(name)
+	
+	users.Lock()
+	users.Number++
+	users.Unlock()
+
+	if users.Number < 2 {
+		users.Lock()
+		users.info[client] = name
+		broadcast <- fmt.Sprintf("%s has joined our chat...", users.info[client])
+		users.Unlock()
+
+	} else {
+		users.Lock()
+		users.Number--
+		users.Unlock()
+		client.Close()
+	}
 }
