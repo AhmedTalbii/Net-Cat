@@ -50,12 +50,12 @@ func ClientInfo(client net.Conn) {
 	}
 
 	name = strings.TrimSpace(name)
-	
+
 	users.Lock()
 	users.Number++
 	users.Unlock()
 
-	if users.Number < 2 {
+	if users.Number <= 10 {
 		users.Lock()
 		users.info[client] = name
 		broadcast <- fmt.Sprintf("%s has joined our chat...", users.info[client])
