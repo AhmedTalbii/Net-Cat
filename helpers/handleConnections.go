@@ -17,13 +17,17 @@ type usersInfo struct {
 	Number int // number of all the accepted connections
 	info   map[net.Conn]string
 }
+type Messages struct {
+	sender  string
+	message string
+}
 
 var users = usersInfo{
 	info: make(map[net.Conn]string),
 }
 
 // broadcast channel is used to send messages to all connected clients
-var broadcast = make(chan string)
+var broadcast = make(chan Messages)
 
 // HandleConnections accepts incoming connections and manages them
 // Create or open the history file for storing chat history
@@ -102,7 +106,10 @@ func ClientInfo(client net.Conn) {
 		}
 		client.Write(history)
 
-		broadcast <- fmt.Sprintf("%s has joined our chat...\n", users.info[client])
+		broadcast <- Messages{
+			sender:  users.info[client],
+			message: fmt.Sprintf("%s has joined our chat...\n", users.info[client]),
+		}
 
 	} else {
 
