@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -12,10 +13,11 @@ import (
 // Create or open the history file for storing chat history
 // Accept incoming connections
 // Handle each client connection concurrently
-func HandleConnections(conn net.Listener) {
+func HandleConnections(listner net.Listener) {
+	defer listner.Close()
 	var err error
 
-	file, err = os.Create("history.txt")
+	file, err = os.Create("assets/history.txt")
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 		return
@@ -23,14 +25,27 @@ func HandleConnections(conn net.Listener) {
 	defer file.Close()
 
 	for {
-		defer conn.Close()
-		client, err := conn.Accept()
+		conn, err := listner.Accept()
 		if err != nil {
-			fmt.Println("accepting went wrong : ", err)
-			return
+			if errors.Is(err, net.ErrClosed) {
+				fmt.Println("Problem in server : ", err)
+				return
+			}
+			continue
 		}
 
-		go ClientInfo(client)
+		users.Lock()
+		if len(users.info) >= 2 {
+			fmt.Fprint(conn, "the chat room is currently full, please try again later\n")
+			conn.Close()
+			users.Unlock()
+			continue
+		}
+		users.info[conn] = ""
+		users.Unlock()
+
+		go ClientInfo(conn)
+
 	}
 }
 
@@ -43,74 +58,72 @@ func HandleConnections(conn net.Listener) {
 // Load and send chat history to the new client
 // Broadcast to all users that a new user has joined
 // Reject connection if the chat room is full
-func ClientInfo(client net.Conn) {
-	Ping_Win_Mess, err := os.ReadFile("assets/pingwing.txt")
+func ClientInfo(conn net.Conn) {
+	defer conn.Close()
+	Ping_Win_Mess := "Welcome to TCP-Chat!\n" +
+		"         _nnnn_\n" +
+		"        dGGGGMMb\n" +
+		"       @p~qp~~qMb\n" +
+		"       M|@||@) M|\n" +
+		"       @,----.JM|\n" +
+		"      JS^\\__/  qKL\n" +
+		"     dZP        qKRb\n" +
+		"    dZP          qKKb\n" +
+		"   fZP            SMMb\n" +
+		"   HZM            MMMM\n" +
+		"   FqM            MMMM\n" +
+		" __| \".        |\\dS\"qML\n" +
+		" |    `.       | `' \\Zq\n" +
+		"_)      \\.___.,|     .'\n" +
+		"\\____   )MMMMMP|   .'\n" +
+		"     `-'       `--'\n" +
+		"[ENTER YOUR NAME]:"
+	conn.Write([]byte(Ping_Win_Mess))
+
+	name := ""
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		name = scanner.Text()
+		if err := Valid_Name(name); err != nil {
+			fmt.Fprint(conn, err)
+			continue
+		}
+		break
+	}
+
+	users.RLock()
+	users.info[conn] = name
+	users.RUnlock()
+
+	history, err := os.ReadFile("assets/history.txt")
 	if err != nil {
-		fmt.Println("Ping_win_message: ", err)
-		return
+		fmt.Println("Error reading history:", err)
 	}
-	client.Write(Ping_Win_Mess)
+	conn.Write(history)
 
-	reader := bufio.NewReader(client)
-	name, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println(err)
-		client.Close()
-		return
-	}
-	name = strings.TrimSpace(name)
-
-	for !Valid_Name(name) {
-		fmt.Fprint(client, "Invalid Name try again\n[ENTER YOUR NAME]:")
-		name, err = reader.ReadString('\n')
-		if err != nil {
-			client.Close()
-			return
-		}
-		name = strings.TrimSpace(name)
-	}
-
-	users.Lock()
-	users.Number++
-	users.Unlock()
-
-	if users.Number <= 10 {
-		users.Lock()
-		users.info[client] = name
-		users.Unlock()
-
-		history, err := os.ReadFile("history.txt")
-		if err != nil {
-			fmt.Println("Error reading history:", err)
-		}
-		client.Write(history)
-
-		broadcast <- Messages{
-			sender:  users.info[client],
-			message: fmt.Sprintf("%s has joined our chat...\n", users.info[client]),
-		}
-
-	} else {
-
-		users.Lock()
-		users.Number--
-		users.Unlock()
-		fmt.Fprint(client, "the chat room is currently full, please try again later\n")
-		client.Close()
+	broadcast <- Messages{
+		sender:  users.info[conn],
+		message: fmt.Sprintf("%s has joined our chat...\n", users.info[conn]),
 	}
 }
 
 // Valid_Name checks if the provided name is valid (non-empty, under 15 characters, and not already taken)
 // Ensure the name is unique (case-insensitive check)
-func Valid_Name(name string) bool {
+func Valid_Name(name string) error {
 	if name == "" || len(name) > 15 {
-		return false
+		return errors.New("invalid name length (1-15), try again:\n[ENTER YOUR NAME]: ")
+	}
+
+	for _, char := range name {
+		if (char < 'a' || char > 'z') && (char < 'A' || char > 'Z') {
+			return errors.New("invalid name, only letters allowed, try again:\n[ENTER YOUR NAME]: ")
+		}
 	}
 
 	for _, v := range users.info {
 		if strings.EqualFold(v, name) {
-			return false
+			return errors.New("name already exists, try again:\n[ENTER YOUR NAME]: ")
 		}
 	}
-	return true
+	return nil
 }
