@@ -5,7 +5,7 @@ import (
 	"net"
 	"os"
 
-	"net_cat/helpers"
+	logic "net_cat/logic"
 )
 
 func main() {
@@ -31,5 +31,5 @@ func main() {
 	_, por, _ := net.SplitHostPort(addr)
 	fmt.Println("server is started at port :", por)
 
-	helpers.HandleConnections(listner)
+	logic.HandleConnections(listner)
 }
