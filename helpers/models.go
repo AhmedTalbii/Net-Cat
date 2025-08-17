@@ -11,8 +11,7 @@ var file *os.File
 // usersInfo struct holds the number of active users and their information
 type usersInfo struct {
 	sync.RWMutex
-	Number int // number of all the accepted connections
-	info   map[net.Conn]string
+	info map[net.Conn]string
 }
 
 type Messages struct {
@@ -26,4 +25,5 @@ var (
 	users  = usersInfo{info: make(map[net.Conn]string)}
 	Msg    = make(chan Messages)
 	MsgRLU sync.RWMutex
+	Time   = UpdateTime()
 )

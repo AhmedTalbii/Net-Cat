@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-// HandleConnections accepts incoming connections and manages them
-// Create or open the history file for storing chat history
-// Accept incoming connections
-// Handle each client connection concurrently
 func HandleConnections(listner net.Listener) {
 	defer listner.Close()
 	var err error
@@ -43,21 +39,12 @@ func HandleConnections(listner net.Listener) {
 			continue
 		}
 		users.info[conn] = ""
-		go ClientInfo(conn)
 		users.Unlock()
+		go HandleClient(conn)
 	}
 }
 
-// ClientInfo handles the individual client interactions, including name validation and broadcasting messages
-// Load the initial message for new clients
-// Read and validate the client’s name
-// Keep asking for a valid name until provided
-// Update user count and store user info
-// Allow only 10 users in the chat room at a time
-// Load and send chat history to the new client
-// Broadcast to all users that a new user has joined
-// Reject connection if the chat room is full
-func ClientInfo(conn net.Conn) {
+func HandleClient(conn net.Conn) {
 	defer conn.Close()
 	Ping_Win_Mess := "Welcome to TCP-Chat!\n" +
 		"         _nnnn_\n" +
@@ -100,24 +87,18 @@ func ClientInfo(conn net.Conn) {
 	}
 	conn.Write(history)
 
-	Msg <- Messages{
-		ConSender: conn,
-		NameS:     name,
-		Text:      fmt.Sprintf("%s has joined our chat...", name),
+	if len(name) != 0 {
+		Msg <- Messages{
+			ConSender: conn,
+			NameS:     name,
+			Text:      fmt.Sprintf("%s has joined our chat...", name),
+		}
 	}
 
 	HandleMessage(conn, name)
-
-	Msg <- Messages{
-		ConSender: conn,
-		NameS:     name,
-		Text:      fmt.Sprintf("%s  has left our chat...", name),
-	}
-
+	delete(users.info, conn) 
 }
 
-// Valid_Name checks if the provided name is valid (non-empty, under 15 characters, and not already taken)
-// Ensure the name is unique (case-insensitive check)
 func Valid_Name(name string) error {
 	if name == "" || len(name) > 15 {
 		return errors.New("invalid name length (1-15), try again:\n[ENTER YOUR NAME]: ")
