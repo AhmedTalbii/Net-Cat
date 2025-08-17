@@ -29,7 +29,7 @@ func StartListeningChan() {
 				} else if strings.HasSuffix(message.Text, "has left our chat...") && message.NameS == "" {
 					continue
 				} else if strings.HasSuffix(message.Text, "has left our chat...") {
-					fmt.Fprint(con, "\n\033[42m"+message.Text+"\033[0m")
+					fmt.Fprint(con, "\n\033[41m"+message.Text+"\033[0m")
 				} else {
 					m := fmt.Sprintf("\n\033[35m[%s][%s]:\033[0m%s", UpdateTime(), message.NameS, message.Text)
 					f.WriteString(m[1:] + "\n")
@@ -54,12 +54,12 @@ func UpdateTime() string {
 // this fucntion check if the name is contain only alphabetical character, otherwise it return error
 func Valid_Name(name string) error {
 	if name == "" || len(name) > 15 {
-		return errors.New("invalid name length (1-15), try again:\n[ENTER YOUR NAME]: ")
+		return errors.New("\033[1;31m invalid name length (1-15), try again:\n[ENTER YOUR NAME]: \033[0m")
 	}
 
 	for _, char := range name {
 		if (char < 'a' || char > 'z') && (char < 'A' || char > 'Z') {
-			return errors.New("invalid name, only letters allowed, try again:\n[ENTER YOUR NAME]: ")
+			return errors.New("\033[1;31m invalid name, only letters allowed, try again:\n[ENTER YOUR NAME]: \033[0m")
 		}
 	}
 
@@ -67,7 +67,7 @@ func Valid_Name(name string) error {
 	defer users.RUnlock()
 	for _, v := range users.info {
 		if strings.EqualFold(v, name) {
-			return errors.New("name already exists, try again:\n[ENTER YOUR NAME]: ")
+			return errors.New("\033[1;31m name already exists, try again:\n[ENTER YOUR NAME]: \033[0m")
 		}
 	}
 	return nil

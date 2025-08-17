@@ -62,7 +62,7 @@ func HandleConnections(listner net.Listener) {
 				"\\____   )MMMMMP|   .'\n" +
 				"     `-'       `--'\n"
 
-			con.Write([]byte("\033[1;94m" + Ping_Win_Mess + "\033[0m" + "[ENTER YOUR NAME]:"))
+			con.Write([]byte("\033[0;93m" + Ping_Win_Mess + "\033[0m" + "[ENTER YOUR NAME]:"))
 
 			name := ""
 			scanner := bufio.NewScanner(con)
@@ -110,7 +110,7 @@ func HandleConnections(listner net.Listener) {
 					}
 					text := scanner.Text()
 					if text == "" {
-						fmt.Fprintf(conn, "033[36m["+UpdateTime()+"]"+"["+name+"]: \033[0m")
+						fmt.Fprintf(conn, "\033[36m["+UpdateTime()+"]"+"["+name+"]: \033[0m")
 						continue
 					}
 
