@@ -16,12 +16,14 @@ type usersInfo struct {
 }
 
 type Messages struct {
-	sender  string
-	message string
+	ConSender net.Conn
+	NameS     string
+	Text      string
 }
 
 // broadcast channel is used to send messages to all connected clients
 var (
-	users     = usersInfo{info: make(map[net.Conn]string)}
-	broadcast = make(chan Messages)
+	users  = usersInfo{info: make(map[net.Conn]string)}
+	Msg    = make(chan Messages)
+	MsgRLU sync.RWMutex
 )

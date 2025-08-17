@@ -24,6 +24,8 @@ func HandleConnections(listner net.Listener) {
 	}
 	defer file.Close()
 
+	go StartListeningChan()
+
 	for {
 		conn, err := listner.Accept()
 		if err != nil {
@@ -33,7 +35,6 @@ func HandleConnections(listner net.Listener) {
 			}
 			continue
 		}
-
 		users.Lock()
 		if len(users.info) >= 2 {
 			fmt.Fprint(conn, "the chat room is currently full, please try again later\n")
@@ -42,10 +43,8 @@ func HandleConnections(listner net.Listener) {
 			continue
 		}
 		users.info[conn] = ""
-		users.Unlock()
-
 		go ClientInfo(conn)
-
+		users.Unlock()
 	}
 }
 
@@ -91,9 +90,9 @@ func ClientInfo(conn net.Conn) {
 		break
 	}
 
-	users.RLock()
+	users.Lock()
 	users.info[conn] = name
-	users.RUnlock()
+	users.Unlock()
 
 	history, err := os.ReadFile("assets/history.txt")
 	if err != nil {
@@ -101,10 +100,20 @@ func ClientInfo(conn net.Conn) {
 	}
 	conn.Write(history)
 
-	broadcast <- Messages{
-		sender:  users.info[conn],
-		message: fmt.Sprintf("%s has joined our chat...\n", users.info[conn]),
+	Msg <- Messages{
+		ConSender: conn,
+		NameS:     name,
+		Text:      fmt.Sprintf("%s has joined our chat...", name),
 	}
+
+	HandleMessage(conn, name)
+
+	Msg <- Messages{
+		ConSender: conn,
+		NameS:     name,
+		Text:      fmt.Sprintf("%s  has left our chat...", name),
+	}
+
 }
 
 // Valid_Name checks if the provided name is valid (non-empty, under 15 characters, and not already taken)
@@ -120,6 +129,8 @@ func Valid_Name(name string) error {
 		}
 	}
 
+	users.RLock()
+	defer users.RUnlock()
 	for _, v := range users.info {
 		if strings.EqualFold(v, name) {
 			return errors.New("name already exists, try again:\n[ENTER YOUR NAME]: ")

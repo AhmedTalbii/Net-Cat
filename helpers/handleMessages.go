@@ -4,47 +4,47 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 )
 
-var (
-	Con []Client
-	Msg chan Message
-)
-
-type Client struct {
-	Name string
-	Con  net.Conn
-}
-
-type Message struct {
-	IpSender, Message string
+func StartListeningChan() {
+	MsgRLU.RLock()
+	for message := range Msg {
+		for con, nameR := range users.info {
+			updateTime := UpdateTime()
+			if len(nameR) == 0 {
+				continue
+			}
+			if con != message.ConSender {
+				if strings.HasSuffix(message.Text, "has joined our chat...") {
+					fmt.Fprint(con, "\n"+message.Text)
+				} else {
+					fmt.Fprint(con, "\n["+updateTime+"]"+"["+message.NameS+"]:"+message.Text)
+				}
+				fmt.Fprint(con, "\n["+updateTime+"]"+"["+nameR+"]:")
+				continue
+			}
+			fmt.Fprint(con, "["+updateTime+"]"+"["+message.NameS+"]:")
+		}
+	}
+	MsgRLU.RUnlock()
 }
 
 func HandleMessage(conn net.Conn, name string) {
 	scanner := bufio.NewScanner(conn)
-	var f bool = false
 
 	for {
-		time := UpdateTime()
-		if !f {
-			fmt.Fprint(conn, "["+time+"]"+"["+name+"]:")
-			f = true
-		}
 		if !scanner.Scan() {
 			fmt.Fprint(conn, "Error happend in scanning name")
 			return
 		}
 		text := scanner.Text()
-		for _, con := range Con {
-			updateTime := UpdateTime()
-			if con.Con != conn {
-				fmt.Fprint(con.Con, "\n["+updateTime+"]"+"["+name+"]:"+text)
-				fmt.Fprint(con.Con, "\n["+updateTime+"]"+"["+con.Name+"]:")
 
-			} else {
-				fmt.Fprint(conn, "["+updateTime+"]"+"["+name+"]:")
-			}
+		Msg <- Messages{
+			ConSender: conn,
+			NameS:     name,
+			Text:      text,
 		}
 	}
 }
