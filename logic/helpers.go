@@ -3,9 +3,11 @@ package helpers
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
+
 // this fucntion listens for messages from (Msg) channel and sends them to the all clients, it also format join and left user and chat text.
 func StartListeningChan() {
 	MsgRLU.RLock()
@@ -14,24 +16,36 @@ func StartListeningChan() {
 			if len(nameR) == 0 {
 				continue
 			}
+			f, err := os.OpenFile("assets/history.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o777)
+			if err != nil {
+				return
+			}
+
 			if con != message.ConSender {
 				if strings.HasSuffix(message.Text, "has joined our chat...") {
-					fmt.Fprint(con, "\n"+message.Text)
+					m := fmt.Sprintf("\n\033[42m" + message.Text + "\033[0m")
+
+					fmt.Fprint(con, m)
 				} else if strings.HasSuffix(message.Text, "has left our chat...") && message.NameS == "" {
 					continue
 				} else if strings.HasSuffix(message.Text, "has left our chat...") {
-					fmt.Fprint(con, "\n"+message.Text)
+					fmt.Fprint(con, "\n\033[42m"+message.Text+"\033[0m")
 				} else {
-					fmt.Fprint(con, "\n["+UpdateTime()+"]"+"["+message.NameS+"]:"+message.Text)
+					m := fmt.Sprintf("\n\033[35m[%s][%s]:\033[0m%s", UpdateTime(), message.NameS, message.Text)
+					f.WriteString(m[1:] + "\n")
+					f.Close()
+					fmt.Fprint(con, m)
 				}
-				fmt.Fprint(con, "\n["+UpdateTime()+"]"+"["+nameR+"]:")
+
+				fmt.Fprint(con, "\n\033[36m["+UpdateTime()+"]"+"["+nameR+"]:\033[0m")
 				continue
 			}
-			fmt.Fprint(con, "["+UpdateTime()+"]"+"["+message.NameS+"]:")
+			fmt.Fprint(con, "\033[36m"+UpdateTime()+"]"+"["+message.NameS+"]:\033[0m")
 		}
 	}
 	MsgRLU.RUnlock()
 }
+
 // format the current time
 func UpdateTime() string {
 	return fmt.Sprint(time.Now().Year(), "-", int(time.Now().Month()), "-", time.Now().Day(), " ", time.Now().Hour(), ":", time.Now().Minute(), ":", time.Now().Second())

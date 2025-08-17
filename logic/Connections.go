@@ -7,7 +7,8 @@ import (
 	"net"
 	"os"
 )
-// this fucntion does multiple tasks : create the history file if it dosn't exist, start listening on channel, accepts clients (<10), also handles clients/messages. 
+
+// this fucntion does multiple tasks : create the history file if it dosn't exist, start listening on channel, accepts clients (<10), also handles clients/messages.
 func HandleConnections(listner net.Listener) {
 	defer listner.Close()
 	var err error
@@ -59,9 +60,9 @@ func HandleConnections(listner net.Listener) {
 				" |    `.       | `' \\Zq\n" +
 				"_)      \\.___.,|     .'\n" +
 				"\\____   )MMMMMP|   .'\n" +
-				"     `-'       `--'\n" +
-				"[ENTER YOUR NAME]:"
-			con.Write([]byte(Ping_Win_Mess))
+				"     `-'       `--'\n"
+
+			con.Write([]byte("\033[1;94m" + Ping_Win_Mess + "\033[0m" + "[ENTER YOUR NAME]:"))
 
 			name := ""
 			scanner := bufio.NewScanner(con)
@@ -109,16 +110,9 @@ func HandleConnections(listner net.Listener) {
 					}
 					text := scanner.Text()
 					if text == "" {
-						fmt.Fprintf(conn, "["+UpdateTime()+"]"+"["+name+"]: ")
+						fmt.Fprintf(conn, "033[36m["+UpdateTime()+"]"+"["+name+"]: \033[0m")
 						continue
 					}
-
-					f, err := os.OpenFile("assets/history.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o777)
-					if err != nil {
-						return
-					}
-					f.WriteString("[" + UpdateTime() + "]" + "[" + name + "]: " + text + "\n")
-					f.Close()
 
 					Msg <- Messages{
 						ConSender: conn,
