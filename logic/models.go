@@ -2,11 +2,8 @@ package helpers
 
 import (
 	"net"
-	"os"
 	"sync"
 )
-
-var file *os.File
 
 // usersInfo struct holds the information of active users
 type usersInfo struct {
@@ -18,11 +15,12 @@ type Messages struct {
 	ConSender net.Conn
 	NameS     string
 	Text      string
+	Normal    bool
 }
 
 var (
-	users  = usersInfo{info: make(map[net.Conn]string)}
 	Msg    = make(chan Messages)
+	users  = usersInfo{info: make(map[net.Conn]string)}
 	MsgRLU sync.RWMutex
 	Time   = UpdateTime()
 )
