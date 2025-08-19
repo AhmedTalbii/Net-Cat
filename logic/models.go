@@ -1,4 +1,4 @@
-package helpers
+package logic
 
 import (
 	"net"
