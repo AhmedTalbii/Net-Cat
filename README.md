@@ -1,10 +1,10 @@
-# net-cat
+# Net-Cat
 A simple TCP chat program inspired by **netcat**, written in Go.
 
-# team members :
-- Fatima Aaziz
+# Team members :
 - Ahmed Talbi
 - Ilyass Aboudou
+- Fatima Aaziz
 
 ## Usage
 1. Start the server:
@@ -32,7 +32,7 @@ Client B: Hi A!
 [system]: Client C has left our chat...
 ```
 
-## structure 
+## Structure 
 
 ```
 net-cat/
