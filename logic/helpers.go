@@ -17,28 +17,27 @@ func StartListeningChan() {
 				continue
 			}
 
-			
 			if con != message.ConSender {
 				if !message.Normal {
-					SendMessage(con, "", "", message.Text)
-				}
-
-				if strings.HasSuffix(message.Text, "has joined our chat...") {
-					SendMessage(con, "\n", "42", message.Text)
-					// m := fmt.Sprintf("\n\033[42m" + message.Text + "\033[0m")
-					// fmt.Fprint(con, m)
-				} else if strings.HasSuffix(message.Text, "has left our chat...") && message.NameS == "" {
-					continue
-				} else if strings.HasSuffix(message.Text, "has left our chat...") {
-					SendMessage(con, "\n", "41", message.Text)
-					// fmt.Fprint(con, "\n\033[41m"+message.Text+"\033[0m")
-				} else {
 					SendMessage(con, "\n", "35", "[", UpdateTime(), "]", "[", message.NameS, "]:")
 					SendMessage(con, "", "", message.Text)
-					// m := fmt.Sprintf("\n\033[35m[%s][%s]:\033[0m%s", UpdateTime(), message.NameS, message.Text)
-					// fmt.Fprint(con, m)
+				} else {
+					if strings.HasSuffix(message.Text, "has joined our chat...") {
+						SendMessage(con, "\n", "42", message.Text)
+						// m := fmt.Sprintf("\n\033[42m" + message.Text + "\033[0m")
+						// fmt.Fprint(con, m)
+					} else if strings.HasSuffix(message.Text, "has left our chat...") && message.NameS == "" {
+						continue
+					} else if strings.HasSuffix(message.Text, "has left our chat...") {
+						SendMessage(con, "\n", "41", message.Text)
+						// fmt.Fprint(con, "\n\033[41m"+message.Text+"\033[0m")
+					} else {
+						SendMessage(con, "\n", "35", "[", UpdateTime(), "]", "[", message.NameS, "]:")
+						SendMessage(con, "", "", message.Text)
+						// m := fmt.Sprintf("\n\033[35m[%s][%s]:\033[0m%s", UpdateTime(), message.NameS, message.Text)
+						// fmt.Fprint(con, m)
+					}
 				}
-
 				// fmt.Fprint(con, "\n\033[36m["+UpdateTime()+"]"+"["+nameR+"]:\033[0m")
 				SendMessage(con, "\n", "36", "[", UpdateTime(), "]", "[", nameR, "]:")
 				continue
@@ -79,7 +78,7 @@ func Valid_Name(name string) error {
 
 func ValidMessage(msg string) error {
 	switch {
-	case strings.HasSuffix(msg,"has joined our chat...") || strings.HasSuffix(msg,"has left our chat...") :
+	case strings.HasSuffix(msg, "has joined our chat...") || strings.HasSuffix(msg, "has left our chat..."):
 		return errors.New("The_user_send_joined_or_left")
 	case !ContainASCIIchar(msg):
 		return errors.New("out ascii")

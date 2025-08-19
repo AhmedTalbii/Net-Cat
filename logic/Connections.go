@@ -115,16 +115,16 @@ func Handlemessage(conn net.Conn, name string) {
 			return
 		}
 		text := scanner.Text()
-		IsNormal := true
 
 		if text == "" {
 			SendMessage(conn, "", "31", "Can't send Empty message\n")
 			SendMessage(conn, "", "36", "["+UpdateTime()+"]"+"["+name+"]:")
 			continue
-		} else if er := ValidMessage(text); er != nil {
+		}
+
+		if er := ValidMessage(text); er != nil {
 			switch er.Error() {
-			case "The_user_send_joined_or_left" :
-				IsNormal = false
+			
 			case "out ascii":
 				SendMessage(conn, "", "31", "can't send characters out of the ascii range\n")
 				SendMessage(conn, "", "36", "["+UpdateTime()+"]"+"["+name+"]:")
@@ -132,7 +132,6 @@ func Handlemessage(conn net.Conn, name string) {
 				SendMessage(conn, "", "31", "message too large\n")
 				SendMessage(conn, "", "36", "["+UpdateTime()+"]"+"["+name+"]:")
 			}
-			continue
 		}
 
 		f, err := os.OpenFile("assets/history.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o777)
@@ -146,7 +145,7 @@ func Handlemessage(conn net.Conn, name string) {
 			ConSender: conn,
 			NameS:     name,
 			Text:      text,
-			Normal:    IsNormal,
+			Normal:    false,
 		}
 	}
 }
