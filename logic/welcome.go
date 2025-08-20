@@ -47,14 +47,7 @@ func WelcomeCLient(con net.Conn) {
 	if err != nil { fmt.Println("Error reading history:", err); return
 	} else { con.Write(history) }
 
-	if len(name) != 0 {
-		Msg <- Messages{
-			ConSender: con,
-			NameS:     name,
-			Text:      fmt.Sprintf("\033[42m%s has joined our chat...\033[0m", name),
-			Normal:    true,
-		}
-	}
+	if len(name) != 0 { Msg <- Messages{ ConSender:con, NameS:name, Text:fmt.Sprintf("\033[42m%s has joined our chat...\033[0m", name), Normal:true } }
 	Handlemessage(con, name)
 	delete(users.info, con)
 }

@@ -21,20 +21,19 @@ func Valid_Name(name string) error {
 
 	for _, char := range name {
 		if (char < 'a' || char > 'z') && (char < 'A' || char > 'Z') {
-			return errors.New("\033[1;31minvalid name, only letters allowed, try again:\033[0m\n[ENTER YOUR NAME]: ")
+			return errors.New("\033[1;31minvalid name, only letters allowed from(a-zA-Z), try again:\033[0m\n[ENTER YOUR NAME]: ")
 		}
 	}
 
 	users.RLock()
 	defer users.RUnlock()
 	for _, v := range users.info {
-		if strings.EqualFold(v, name) {
-			return errors.New("\033[1;31mname already exists, try again:\033[0m\n[ENTER YOUR NAME]: ")
-		}
+		if strings.EqualFold(v, name) { return errors.New("\033[1;31mname already exists, try again:\033[0m\n[ENTER YOUR NAME]: ") }
 	}
 	return nil
 }
 
+// this func check if  the message is too large or contain characters outside the ascii range
 func ValidMessage(msg string) error {
 	switch {
 	case !ContainASCIIchar(msg):
@@ -48,18 +47,14 @@ func ValidMessage(msg string) error {
 // this fucntion check if a string doesn't contain characters outside the ascii range
 func ContainASCIIchar(s string) bool {
 	for _, r := range s {
-		if r < 32 || r > 126 {
-			return false
-		}
+		if r < 32 || r > 126 { return false }
 	}
 	return true
 }
 
 // send formatted message to a connection with color
 func SendMessage(con net.Conn, Nl, color string, parts ...string) {
-	if color == "" {
-		color = "0"
-	}
+	if color == "" { color = "0" }
 
 	fmt.Fprint(con, Nl)
 	fmt.Fprint(con, "\033["+color+"m")
