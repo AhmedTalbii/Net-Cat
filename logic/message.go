@@ -41,7 +41,9 @@ func Handlemessage(conn net.Conn, name string) {
 		}
 
 		f, err := os.OpenFile("assets/history.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o777)
-		if err != nil { return }
+		if err != nil {
+			return
+		}
 
 		m := fmt.Sprintf("\n\033[35m[%s][%s]:\033[0m%s", UpdateTime(), name, text)
 		f.WriteString(m[1:] + "\n")

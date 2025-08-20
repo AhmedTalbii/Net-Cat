@@ -1,6 +1,8 @@
 # Net-Cat
 A simple TCP chat program inspired by **netcat**, written in Go.
 
+![Net-Cat Screenshot](assets/readme/screen.png)
+
 # Team members :
 - Ahmed Talbi
 - Ilyass Aboudou

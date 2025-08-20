@@ -9,6 +9,7 @@ func StartListeningChan() {
 				continue
 			}
 			if con != message.ConSender {
+				SendMessage(con, "", "", "\033[s")
 				if message.Normal {
 					SendMessage(con, "\n", "", message.Text)
 				} else {
@@ -16,6 +17,7 @@ func StartListeningChan() {
 					SendMessage(con, "", "", message.Text)
 				}
 				SendMessage(con, "\n", "36", "[", UpdateTime(), "]", "[", nameR, "]:")
+				SendMessage(con, "", "", "\033[u\033[2B")
 				continue
 			}
 			SendMessage(con, "", "36", "[", UpdateTime(), "][", message.NameS, "]:")

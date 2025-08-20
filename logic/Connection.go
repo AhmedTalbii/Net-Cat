@@ -9,7 +9,7 @@ import (
 
 // this fucntion does multiple tasks : create the history file if it dosn't exist, start listening on channel, accepts clients (<10), also handles clients/messages.
 func HandleConnections(listner net.Listener) {
-	file, err := os.Create("assets/history.txt")
+	file, err := os.Create("./assets/history.txt")
 	if err != nil { fmt.Println("Error creating file:", err); return }
 	file.Close()
 	go StartListeningChan()
@@ -22,7 +22,7 @@ func HandleConnections(listner net.Listener) {
 		}
 
 		users.Lock()
-		if len(users.info) >= 2 {
+		if len(users.info) >= 10 {
 			fmt.Fprint(conn, "the chat room is currently full, please try again later\n")
 			conn.Close()
 			users.Unlock()
