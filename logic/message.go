@@ -26,7 +26,7 @@ func Handlemessage(conn net.Conn, name string) {
 		if er := ValidMessage(text); er != nil {
 			switch er.Error() {
 			case "out ascii":
-				SendMessage(conn, "", "31", "can't send characters out of the ascii range\n")
+				SendMessage(conn, "", "31", "Can't send characters out of the ascii range between from (32 to 126)\n")
 				SendMessage(conn, "", "36", "["+UpdateTime()+"]"+"["+name+"]:")
 			case "large_msg":
 				SendMessage(conn, "", "31", "message too large\n")
